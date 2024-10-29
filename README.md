@@ -52,3 +52,11 @@ les information par défaut de connexion pour avoir un token d'une durée d'au m
   "email":"eliemakodakowo@gmail.com",
   "password":"Markvonarms11!"
   }
+
+
+creer une fichier `.env` et ajoutez les informations nécessaires 
+
+il doit ressembler à ceci 
+`
+JWT_SECRET=merveilleAnge
+PORT=5500`
