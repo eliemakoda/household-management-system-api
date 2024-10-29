@@ -41,3 +41,14 @@ le présent systeme utilise l'orm `Prisma` qui permet l'interraction avec les ba
   - npm start
 
 
+# Token 
+vous aurez besoin d'un token pour utiliser l'application 
+`Comment avoir son token?`
+vous devez vous connecter à l'api grace à l'endpoint 
+`/login`
+
+les information par défaut de connexion pour avoir un token d'une durée d'au moins 24h sont: 
+* {
+  "email":"eliemakodakowo@gmail.com",
+  "password":"Markvonarms11!"
+  }
