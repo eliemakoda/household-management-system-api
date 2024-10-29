@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Utilisateur {
+  id            Int            @id @default(autoincrement())
+  nom           String
+  email         String         @unique
+  motDePasse    String
+  statut        String
+  commandes     Commande[]     @relation("ClientCommandes")
+  notifications Notification[] @relation("UtilisateurNotifications")
+
+  Commande Commande[] @relation("AgentCommandes")
+
+  ZoneDeCollecte ZoneDeCollecte[] @relation("ZoneAgents")
+}
+
+model Commande {
+  id           Int       @id @default(autoincrement())
+  clientId     Int
+  agentId      Int?
+  dateDemande  DateTime  @default(now())
+  dateCollecte DateTime?
+  statut       String
+  typeDeDechet String
+  adresse      String
+
+  client      Utilisateur          @relation("ClientCommandes", fields: [clientId], references: [id])
+  agent       Utilisateur?         @relation("AgentCommandes", fields: [agentId], references: [id])
+  historiques HistoriqueCollecte[]
+
+  Dechet Dechet[] @relation("DechetCommandes")
+}
+
+model Dechet {
+  id          Int        @id @default(autoincrement())
+  type        String
+  description String?
+  commandes   Commande[] @relation("DechetCommandes")
+}
+
+model ZoneDeCollecte {
+  id          Int           @id @default(autoincrement())
+  nom         String
+  description String?
+  agents      Utilisateur[] @relation("ZoneAgents")
+}
+
+model Notification {
+  id            Int      @id @default(autoincrement())
+  utilisateurId Int
+  message       String
+  dateEnvoi     DateTime @default(now())
+  statut        Int
+
+  utilisateur Utilisateur @relation("UtilisateurNotifications", fields: [utilisateurId], references: [id])
+}
+
+model HistoriqueCollecte {
+  id           Int      @id @default(autoincrement())
+  commandeId   Int
+  dateCollecte DateTime @default(now())
+  remarques    String?
+  commande Commande @relation(fields: [commandeId], references: [id])
+}
