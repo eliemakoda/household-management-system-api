@@ -8,7 +8,6 @@ const {
 
 const CreateUser = async (newUser) => {
   try {
-    
     const response = await db.utilisateur.create({
       data: newUser,
     });
@@ -35,7 +34,7 @@ const GetUserByEMail = async (userEmail) => {
   try {
     const user = await db.utilisateur.findUnique({
       where: {
-        email: userEmail
+        email: userEmail,
       },
     });
     if (!user) {
@@ -44,7 +43,7 @@ const GetUserByEMail = async (userEmail) => {
     return user;
   } catch (err) {
     console.log("[USER_CONTROLLER] an error occur here");
-    console.log(err)
+    console.log(err);
     return 0;
   }
 };
@@ -93,6 +92,9 @@ const UpdateUserData = async (userId, userData) => {
       return isUserExist;
     }
     const result = await db.utilisateur.update({
+      where: {
+        id: userId,
+      },
       data: userData,
     });
     if (!result) {
@@ -121,12 +123,15 @@ const assignUserToZone = async (zoneId, userId) => {
     });
     return updatedZone; // Return the updated zone
   } catch (error) {
-    console.error("[ZONE_MODEL] An error occurred while assigning the user to the zone:", error);
-    return 0
+    console.error(
+      "[ZONE_MODEL] An error occurred while assigning the user to the zone:",
+      error
+    );
+    return 0;
   }
 };
 
-module.exports={
+module.exports = {
   hashUserPassword,
   UpdateUserData,
   deleteUserById,
@@ -134,5 +139,5 @@ module.exports={
   GetUserByEMail,
   GetAllUsers,
   CreateUser,
-  assignUserToZone
-}
+  assignUserToZone,
+};

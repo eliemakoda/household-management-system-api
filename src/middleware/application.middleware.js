@@ -3,16 +3,15 @@ const helmet = require("helmet");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const morgan = require("morgan");
-const bodyparser = require("body-parser");
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const { GetUserByEMail } = require("../models");
 const { verifyPassword } = require("../../utils");
-const COllectionHistory = require("../routers/collectHistory.router");
+const CollectionHistory = require("../routers/collectHistory.router");
 const CommandRouter = require("../routers/command.router");
 const HouseHoldRouter = require("../routers/household.router");
 const LocationRouter = require("../routers/location.router");
-const NotificationRouter= require("../routers/notification.router")
+const NotificationRouter = require("../routers/notification.router");
 require("dotenv").config(); // loading virtual environment configurations
 
 const app = express();
@@ -24,26 +23,13 @@ app.use(
   })
 );
 app.use(morgan("combined"));
-app.use(bodyparser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(bodyparser.json());
-app.use((req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader(
-    "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains"
-  );
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-  res.setHeader("Content-Security-Policy", "default-src 'self'");
-
-  next();
-});
 
 // Brute Force Attack Prevention
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 14,
+  max: 144,
   message: {
     error:
       "You've used all your requests for the day! Try again tomorrow! Goodbye!",
@@ -51,54 +37,82 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await GetUserByEMail(email);
-  if (user === 2) {
-    return res
-      .status(401)
-      .send({ msg: "No user found with the specified Email " });
+
+  if (!user) {
+    return res.status(404).send({ msg: "No user found with the specified email." });
   }
-  //   console.log(req.body)
-  //   console.log(user)
+
   const isPasswordVerified = await verifyPassword(password, user.motDePasse);
-  if (user && isPasswordVerified) {
+  if (isPasswordVerified) {
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.statut },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
+    console.log(token)
     return res.status(200).send({ token });
   }
-  return res
-    .status(401)
-    .json({ msg: "Invalid Password please Try Again later" });
+
+  return res.status(401).json({ msg: "Invalid password. Please try again." });
 });
 
-const authenticateJWT = async (req, res, next) => {
-  const token = req.headers["authorization"]?.split(" ")[1];
+const authenticateJWT = (req, res, next) => {
+  const token = req.headers["authorization"];
 
   if (!token) {
-    return res.status(403).json({ msg: "Missing Jwt Token in your Request" });
+    return res.status(403).json({ msg: "Missing JWT token in your request." });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({
-        msg: "Cannot authenticate the token you passed to the request!",
+        msg: "Cannot authenticate the token you provided.",
       });
     }
     req.user = user;
     next();
   });
 };
-app.use(authenticateJWT);
 
-app.use(userRouter);
-app.use(COllectionHistory);
+
 app.use(CommandRouter);
+
+const AgentMiddleware = async (req, res, next) => {
+  const user = req.user;
+  console.log(user);
+  const role = user.role;
+  if (role === "AGENT") {
+    return res.status(401).send({
+      msg: "You don't  permission ",
+    });
+  }
+  next();
+};
+
+
+app.use(authenticateJWT);
+app.use(AgentMiddleware)
+app.use(userRouter);
+
+const UserMiddleware = async (req, res, next) => {
+  const user = req.user;
+  console.log(user);
+  const role = user.role;
+  if (role === "USER") {
+    return res.status(401).send({
+      msg: "You don't  permission ",
+    });
+  }
+  next();
+};
+app.use(UserMiddleware)
+app.use(CollectionHistory);
 app.use(HouseHoldRouter);
 app.use(LocationRouter);
-app.use(NotificationRouter)
+app.use(NotificationRouter);
 
 module.exports = app;

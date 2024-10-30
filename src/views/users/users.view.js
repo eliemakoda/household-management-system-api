@@ -37,7 +37,7 @@ const UpdateUser = async (req, res) => {
   return res.status(200).send(response);
 };
 const GetUserByEmail = async (req, res) => {
-  const userEmail = req.params.userEmail;
+  const userEmail = req.params.Email;
   if (!userEmail) {
     return res.status(422).send({
       msg: "Malformed Request! Missing userEmail in your request's header",

@@ -41,7 +41,7 @@ const ReturnCommandByAgentId = async (idAgent) => {
   return result;
 };
 const ReturnCommandByClientId = async (idClient) => {
-  const parseId = parseInt(idClient);
+  const parseId = parseInt(idClient,10);
   if (!parseId) {
     return 2;
   }

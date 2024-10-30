@@ -35,7 +35,7 @@ const ReturnUserWithId = async (userId) => {
   if (isNaN(parseId)) {
     return 4;
   }
-  const targetUser = await GetUserById(userId);
+  const targetUser = await GetUserById(parseId);
   return targetUser;
 };
 
